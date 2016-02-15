@@ -355,6 +355,29 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
             var axisOffsetCounts = { left: 0, right: 0, top: 0, bottom: 0 };
 
             var defaultPadding = 2;  // padding between axis and tick labels
+
+            plot.hooks.drawSeries.push(function (plot, ctx, serie) {
+                if (serie.firstPassData) {
+                    serie.datapoints.points = serie.firstPassData;
+                    delete serie.firstPassData;
+                }
+
+                var hasAxisLabels = false;
+                $.each(plot.getAxes(), function(axisName, axis) {
+                    var opts = axis.options // Flot 0.7
+                        || plot.getOptions()[axisName]; // Flot 0.6
+
+                    if (!opts || !opts.axisLabel || !axis.show)
+                        return;
+
+                    hasAxisLabels = true;
+                });
+
+                if (!secondPass && hasAxisLabels) {
+                    serie.firstPassData = serie.datapoints.points;
+                    serie.datapoints.points = [];
+                }
+            });
             plot.hooks.draw.push(function (plot, ctx) {
                 var hasAxisLabels = false;
                 if (!secondPass) {
